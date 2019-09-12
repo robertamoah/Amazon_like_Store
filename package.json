@@ -1,0 +1,27 @@
+{
+  "name": "amazon_like_store",
+  "version": "1.0.0",
+  "description": "",
+  "main": "robert.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robertamoah/Amazon_like_Store.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/robertamoah/Amazon_like_Store/issues"
+  },
+  "homepage": "https://github.com/robertamoah/Amazon_like_Store#readme",
+  "dependencies": {
+    "cli-table": "^0.3.1",
+    "inquirer": "^7.0.0",
+    "mysql": "^2.17.1",
+    "table": "^5.4.6",
+    "table-layout": "^1.0.0",
+    "word-table": "^1.0.3"
+  }
+}
