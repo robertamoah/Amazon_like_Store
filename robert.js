@@ -21,20 +21,114 @@ var connection = mysql.createConnection({
 connection.connect(function(err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId + "\n");
-  // createProduct();
-  foodSnacks()
+  readProducts()
+  // foodSnacks()
 });
 
 
 
 
 
-// var names = []
-// var prices = []
-// var department_names = []
 
 
-// console.log(names, prices, department_names)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+function readProducts() {
+
+
+
+  connection.query("SELECT * FROM products", function(err, res) {
+    if (err) throw err;
+    for (var i = 0; i < res.length; i++) {
+  var id = [res[i].id]
+   var name = [res[i].product_name]
+   var price =[res[i].price]
+   var department_name = [res[i].department_name]
+   var quantity= [res[i].stock_quantity]
+   
+
+  //  var table = new Table({ head: ["#","product_name", "department_name", "price", "stock_quantity"] });
+ 
+
+
+  
+  const Table = require('cli-table');
+
+  // instantiate
+  const table = new Table(
+    {
+
+       chars: { 'top': '═' , 'top-mid': '╤' , 'top-left': '╔' , 'top-right': '╗'
+         , 'bottom': '═' , 'bottom-mid': '╧' , 'bottom-left': '╚' , 'bottom-right': '╝'
+         , 'left': '║' , 'left-mid': '╟' , 'mid': '─' , 'mid-mid': '┼'
+         , 'right': '║' , 'right-mid': '╢' , 'middle': '│' },
+    
+     colWidths: [4, 15, 15 ,15, 15],
+
+     head: ["#", "name", "price", "department", "quantity"] 
+    // headWidths: [20, 20],
+  }
+  );
+  
+  // table is an Array, so you can `push`, `unshift`, `splice` and friends
+ 
+table.push(
+  { [id[0]]: [[name[0]], "$" +
+   [price[0]], [department_name[0]], [quantity[0]]
+] }
+
+
+);
+  console.log(table.toString());
+    }
+  });
+  // console.log(query.sql);
+  connection.end();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -54,33 +148,41 @@ function foodSnacks() {
     if (err) throw err;
     for (var i = 0; i < res.length; i++) {
   var id = [res[i].id]
-   var name = res[i].product_name
-   var price =res[i].price 
-   var department_name = res[i].department_name
-   var quantity= res[i].stock_quantity
+   var name = [res[i].product_name]
+   var price =[res[i].price]
+   var department_name = [res[i].department_name]
+   var quantity= [res[i].stock_quantity]
    
 
   //  var table = new Table({ head: ["#","product_name", "department_name", "price", "stock_quantity"] });
  
 
 
+  
+  const Table = require('cli-table');
 
-  var Table = require('cli-table');
-  var table = new Table({ head: ["#","product_name", "department_name", "price", "stock_quantity"]});
-   
+  // instantiate
+  const table = new Table(
+    {
 
+    
+      colWidths: [4, 15, 15 ,15, 15],
 
-   table.push(
-     { [id[0]]: [name,  department_name,"$" + price , quantity ] },
-
-     
+     head: ["#", "name", "price", "department", "quantity"] 
+    // headWidths: [20, 20],
+  }
+  );
+  
+  // table is an Array, so you can `push`, `unshift`, `splice` and friends
  
- );
-  
- console.log(table.toString());
+table.push(
+  { [id[0]]: [[name[0]], "$" +
+   [price[0]], [department_name[0]], [quantity[0]]
+] }
 
-  
-   
+
+);
+  console.log(table.toString());
 
 
 
