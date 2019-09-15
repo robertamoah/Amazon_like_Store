@@ -1,8 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var Table = require('cli-table');
-
-
 var connection = mysql.createConnection({
   host: "localhost",
 
@@ -16,57 +14,55 @@ var connection = mysql.createConnection({
   password: "0242",
   database: "bamazonDB"
 });
-
-
 connection.connect(function(err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId + "\n");
-  readProducts()
-  // foodSnacks()
+
+  runSearch()
 });
 
 
 
+// ************************************************************************
+function runSearch() {
+  inquirer
+    .prompt({
+      name: "action",
+      type: "rawlist",
+      message: "Welcome To BaMazon select option:",
+      choices: [
+        "sales",
+        "low inventory",
+        "add inventory",
+        "add new Product",
+        // "admin"
+        
+      ]
+    })
+    .then(function(answer) {
+      switch (answer.action) {
+        case "sales":
+            all()
+        break;
+
+      case "low inventory":
+          lowInventory()
+        break;
+
+      case "add inventory":
+        addInventory()
+        break;
+
+      case "add new Product":
+        createNewProduct()
+        break;
+      }
+    });
+}
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-function readProducts() {
-
-
-
+function all() {
   connection.query("SELECT * FROM products", function(err, res) {
     if (err) throw err;
     for (var i = 0; i < res.length; i++) {
@@ -75,76 +71,32 @@ function readProducts() {
    var price =[res[i].price]
    var department_name = [res[i].department_name]
    var quantity= [res[i].stock_quantity]
-   
 
-  //  var table = new Table({ head: ["#","product_name", "department_name", "price", "stock_quantity"] });
- 
-
-
-  
   const Table = require('cli-table');
 
   // instantiate
   const table = new Table(
-    {
-
-       chars: { 'top': '═' , 'top-mid': '╤' , 'top-left': '╔' , 'top-right': '╗'
-         , 'bottom': '═' , 'bottom-mid': '╧' , 'bottom-left': '╚' , 'bottom-right': '╝'
-         , 'left': '║' , 'left-mid': '╟' , 'mid': '─' , 'mid-mid': '┼'
-         , 'right': '║' , 'right-mid': '╢' , 'middle': '│' },
-    
-     colWidths: [4, 15, 15 ,15, 15],
-
-     head: ["#", "name", "price", "department", "quantity"] 
-    // headWidths: [20, 20],
-  }
+    {colWidths: [4, 15, 15 ,15, 15],
+      head: ["#", "name", "price", "department", "quantity"]}
   );
   
-  // table is an Array, so you can `push`, `unshift`, `splice` and friends
  
-table.push(
+  table.push(
   { [id[0]]: [[name[0]], "$" +
-   [price[0]], [department_name[0]], [quantity[0]]
-] }
-
-
-);
+  [price[0]], [department_name[0]], [quantity[0]]]});
   console.log(table.toString());
-    }
-  });
+
+}});
+
   // console.log(query.sql);
+  
   connection.end();
+  runSearch()
+ 
+ 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function foodSnacks() {
-
-
-
-  connection.query("SELECT * FROM products WHERE department_name = 'Food & Snacks' ", function(err, res) {
+function lowInventory() {
+  connection.query("SELECT * FROM products WHERE stock_quantity < 50", function(err, res) {
     if (err) throw err;
     for (var i = 0; i < res.length; i++) {
   var id = [res[i].id]
@@ -152,151 +104,363 @@ function foodSnacks() {
    var price =[res[i].price]
    var department_name = [res[i].department_name]
    var quantity= [res[i].stock_quantity]
-   
 
-  //  var table = new Table({ head: ["#","product_name", "department_name", "price", "stock_quantity"] });
- 
-
-
-  
   const Table = require('cli-table');
 
   // instantiate
   const table = new Table(
-    {
-
-    
-      colWidths: [4, 15, 15 ,15, 15],
-
-     head: ["#", "name", "price", "department", "quantity"] 
-    // headWidths: [20, 20],
-  }
+    {colWidths: [4, 15, 15 ,15, 15],
+      head: ["#", "name", "price", "department", "quantity"]}
   );
   
-  // table is an Array, so you can `push`, `unshift`, `splice` and friends
  
-table.push(
+  table.push(
   { [id[0]]: [[name[0]], "$" +
-   [price[0]], [department_name[0]], [quantity[0]]
-] }
-
-
-);
+  [price[0]], [department_name[0]], [quantity[0]]]});
   console.log(table.toString());
-
-
-
-
-
-
-
-  
-
-  //  console.log(name, price, department_name)
-
-    }
-
-
-
-
-    
-    
-  
-
-  });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}});
 
   // console.log(query.sql);
   connection.end();
+  runSearch();
+
+}
+function addInventory() {
+    
+
+    
+  inquirer.prompt([
+      {
+          type: 'input',
+          name: 'id',
+          message: 'Please enter the Item ID for stock_count update.',
+          validate: validateInteger,
+          filter: Number
+      },
+      {
+          type: 'input',
+          name: 'quantity',
+          message: 'How many would you like to add?',
+          validate: validateInteger,
+          filter: Number
+      }
+  ]).then(function(input) {
+      
+      var item = input.id;
+      var addQuantity = input.quantity;
+
+      var queryStr = 'SELECT * FROM products WHERE ?';
+
+      connection.query(queryStr, {id: item}, function(err, data) {
+          if (err) throw err;
+
+
+          if (data.length === 0) {
+              console.log('ERROR: Invalid Item ID. Please select a valid Item ID.');
+              addInventory();
+
+          } else {
+              var productData = data[0];
+
+              console.log('Updating Inventory...');
+
+              var updateQueryStr = 'UPDATE products SET stock_quantity = ' + (productData.stock_quantity + addQuantity) + ' WHERE id = ' + item;
+      
+              connection.query(updateQueryStr, function(err, data) {
+                  if (err) throw err;
+
+                  console.log('Stock count for Item ID ' + item + ' has been updated to ' + (productData.stock_quantity + addQuantity) + '.');
+                  console.log("\n---------------------------------------------------------------------\n");
+                  runSearch()
+                  ;
+              })
+          }
+      })
+  })
+}
+function createNewProduct() {
+
+  inquirer.prompt([
+      {
+          type: 'input',
+          name: 'product_name',
+          message: 'Please enter the new product name.',
+      },
+      {
+          type: 'input',
+          name: 'department_name',
+          message: 'Which department does the new product belong to?',
+      },
+      {
+          type: 'input',
+          name: 'price',
+          message: 'What is the price per unit?',
+          validate: validateNumeric
+      },
+      {
+          type: 'input',
+          name: 'stock_quantity',
+          message: 'How many items are in stock?',
+          validate: validateInteger
+      }
+  ]).then(function(input) {
+  
+
+      console.log('Adding New Item: \n    product_name = ' + input.product_name + '\n' +  
+                                     '    department_name = ' + input.department_name + '\n' +  
+                                     '    price = ' + input.price + '\n' +  
+                                     '    stock_quantity = ' + input.stock_quantity);
+
+  
+      var queryStr = 'INSERT INTO products SET ?';
+
+
+      connection.query(queryStr, input, function (error, results, fields) {
+          if (error) throw error;
+
+          console.log('New product has been added to the inventory under Item ID ' + results.insertId + '.');
+          console.log("\n---------------------------------------------------------------------\n");
+
+          admin()
+
+      });
+  })
 }
 
 
 
+function all2() {
+  connection.query("SELECT * FROM products", function(err, res) {
+    if (err) throw err;
+    for (var i = 0; i < res.length; i++) {
+  var id = [res[i].id]
+   var name = [res[i].product_name]
+   var price =[res[i].price]
+   var department_name = [res[i].department_name]
+   var quantity= [res[i].stock_quantity]
+
+  const Table = require('cli-table');
+
+  // instantiate
+  const table = new Table(
+    {colWidths: [4, 15, 15 ,15, 15],
+      head: ["#", "name", "price", "department", "quantity"]}
+  );
+  
+ 
+  table.push(
+  { [id[0]]: [[name[0]], "$" +
+  [price[0]], [department_name[0]], [quantity[0]]]});
+  console.log(table.toString());
+
+}});
+
+  // console.log(query.sql);
+  
+  connection.end();
+  admin()
+ 
+ 
+}
+function lowInventory2() {
+  connection.query("SELECT * FROM products WHERE stock_quantity < 50", function(err, res) {
+    if (err) throw err;
+    for (var i = 0; i < res.length; i++) {
+  var id = [res[i].id]
+   var name = [res[i].product_name]
+   var price =[res[i].price]
+   var department_name = [res[i].department_name]
+   var quantity= [res[i].stock_quantity]
+
+  const Table = require('cli-table');
+
+  // instantiate
+  const table = new Table(
+    {colWidths: [4, 15, 15 ,15, 15],
+      head: ["#", "name", "price", "department", "quantity"]}
+  );
+  
+ 
+  table.push(
+  { [id[0]]: [[name[0]], "$" +
+  [price[0]], [department_name[0]], [quantity[0]]]});
+  console.log(table.toString());
+}});
+
+  // console.log(query.sql);
+  connection.end();
+  admin();
+
+}
+function addInventory2() {
+    
+
+    
+  inquirer.prompt([
+      {
+          type: 'input',
+          name: 'id',
+          message: 'Please enter the Item ID for stock_count update.',
+          validate: validateInteger,
+          filter: Number
+      },
+      {
+          type: 'input',
+          name: 'quantity',
+          message: 'How many would you like to add?',
+          validate: validateInteger,
+          filter: Number
+      }
+  ]).then(function(input) {
+      
+      var item = input.id;
+      var addQuantity = input.quantity;
+
+      var queryStr = 'SELECT * FROM products WHERE ?';
+
+      connection.query(queryStr, {id: item}, function(err, data) {
+          if (err) throw err;
+
+
+          if (data.length === 0) {
+              console.log('ERROR: Invalid Item ID. Please select a valid Item ID.');
+              addInventory();
+
+          } else {
+              var productData = data[0];
+
+              console.log('Updating Inventory...');
+
+              var updateQueryStr = 'UPDATE products SET stock_quantity = ' + (productData.stock_quantity + addQuantity) + ' WHERE id = ' + item;
+      
+              connection.query(updateQueryStr, function(err, data) {
+                  if (err) throw err;
+
+                  console.log('Stock count for Item ID ' + item + ' has been updated to ' + (productData.stock_quantity + addQuantity) + '.');
+                  console.log("\n---------------------------------------------------------------------\n");
+                  admin()
+                  ;
+              })
+          }
+      })
+  })
+}
+function createNewProduct2() {
+
+  inquirer.prompt([
+      {
+          type: 'input',
+          name: 'product_name',
+          message: 'Please enter the new product name.',
+      },
+      {
+          type: 'input',
+          name: 'department_name',
+          message: 'Which department does the new product belong to?',
+      },
+      {
+          type: 'input',
+          name: 'price',
+          message: 'What is the price per unit?',
+          validate: validateNumeric
+      },
+      {
+          type: 'input',
+          name: 'stock_quantity',
+          message: 'How many items are in stock?',
+          validate: validateInteger
+      }
+  ]).then(function(input) {
+  
+
+      console.log('Adding New Item: \n    product_name = ' + input.product_name + '\n' +  
+                                     '    department_name = ' + input.department_name + '\n' +  
+                                     '    price = ' + input.price + '\n' +  
+                                     '    stock_quantity = ' + input.stock_quantity);
+
+  
+      var queryStr = 'INSERT INTO products SET ?';
+
+
+      connection.query(queryStr, input, function (error, results, fields) {
+          if (error) throw error;
+
+          console.log('New product has been added to the inventory under Item ID ' + results.insertId + '.');
+          console.log("\n---------------------------------------------------------------------\n");
+
+          admin()
+
+      });
+  })
+}
+
+
+function validateInteger(value) {
+  var integer = Number.isInteger(parseFloat(value));
+  var sign = Math.sign(value);
+
+  if (integer && (sign === 1)) {
+      return true;
+  } else {
+      return 'Please enter a whole non-zero number.';
+  }
+}
+
+
+function validateNumeric(value) {
+  
+  var number = (typeof parseFloat(value)) === 'number';
+  var positive = parseFloat(value) > 0;
+
+  if (number && positive) {
+      return true;
+  } else {
+      return 'Please enter a positive number for the unit price.'
+  }
+}
 
 
 
+function admin() {
+    
+  inquirer
+  .prompt({
+    name: "action",
+    type: "rawlist",
+    message: "Welcome To BaMazon select option:",
+    choices: [
+      "See all sales",
+      "See all low inventory",
+      "add inventory",
+      "add new Product",
+      // "admin"
+      
+    ]
+  })
+  .then(function(answer) {
+    switch (answer.action) {
+      case "See all sales":
+          all2()
+      break;
 
+    case "See all low inventory":
+        lowInventory2()
+      break;
 
+    case "add inventory":
+      addInventory2()
+      break;
 
+    case "add new Product":
+      createNewProduct2()
+      break;
 
+    // case "admin":
+    //   // addInventory()
+    //   break;
+    }
+    // exit(1);
+  });
+  
 
-
-
-
-
-// function postAuction() {
-//   // prompt for info about the item being put up for auction
-//   inquirer
-//     .prompt([
-//       {
-//         name: "item",
-//         type: "input",
-//         message: "What is the item you would like to Buy?"
-//       },
-//       {
-//         name: "category",
-//         type: "input",
-//         message: "What category would you like to place your auction in?"
-//       },
-//       {
-//         name: "startingBid",
-//         type: "input",
-//         message: "What would you like your starting bid to be?",
-//         validate: function(value) {
-//           if (isNaN(value) === false) {
-//             return true;
-//           }
-//           return false;
-//         }
-//       }
-//     ])
-
-
-
-
-//     .then(function(answer) {
-//       // when finished prompting, insert a new item into the db with that info
-//       connection.query(
-//         "INSERT INTO auctions SET ?",
-//         {
-//           product_name: answer.product_name,
-//           department_name: answer.department_name,
-//           category: answer.category,
-//           price: answer.price,
-//           stock_quantity: answer.stock_quantity
-          
-//         },
-//         function(err) {
-//           if (err) throw err;
-//           console.log("Your auction was created successfully!");
-//           // re-prompt the user for if they want to bid or post
-//           // start();
-//         }
-//       );
-//     });
-// }
-
-
-
-
+}
